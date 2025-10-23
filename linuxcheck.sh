@@ -33,7 +33,9 @@ Date:2025.04.15
 		2、新增敏感进程规则匹配,用户可自定义进程规则文件dangerspslist.txt
 		3、优化了一些输出细节
 		4、修复了nginx配置文件检查检查的bug[只检查nginx.conf文件,其他导入配置文件未检查]
-	2024.x.x:
+	2025.10.23:
+		1、优化日志打包功能,增加日志文件大小限制 500M 跳过打包操作
+	202x.x.x:
 		2、支持多linux系统
 
 检查说明:
@@ -2187,11 +2189,20 @@ printf "\n" | $saveCheckResult
 
 echo "==========19.检查日志统一打包==========" | $saveCheckResult
 echo "[19.1]正在打包系统原始日志[/var/log]:" | $saveCheckResult
-tar -czvf ${log_file}/system_log.tar.gz /var/log/ -P
-if [ $? -eq 0 ];then
-	echo "[+]日志打包成功" | $saveCheckResult
+
+# 检查/var/log目录大小，如果超过500MB则不执行打包操作
+log_size=$(du -sm /var/log | awk '{print $1}')
+max_size=500
+
+if [ "$log_size" -gt "$max_size" ]; then
+    echo "[!]检测到/var/log目录大小为${log_size}MB，超过${max_size}MB限制，跳过打包操作" | $saveDangerResult | $saveCheckResult
 else
-	echo "[!]日志打包失败,请工人导出日志" |  $saveDangerResult | $saveCheckResult
+    tar -czvf ${log_file}/system_log.tar.gz /var/log/ -P
+    if [ $? -eq 0 ];then
+        echo "[+]日志打包成功" | $saveCheckResult
+    else
+        echo "[!]日志打包失败,请人工导出日志" |  $saveDangerResult | $saveCheckResult
+    fi
 fi
 printf "\n" | $saveCheckResult
 

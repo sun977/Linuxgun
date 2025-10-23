@@ -2192,11 +2192,20 @@ printf "\n" | $saveCheckResult
 
 echo "==========19. Consolidating logs into a single package==========" | $saveCheckResult
 echo "[19.1] Packing raw system logs [/var/log]:" | $saveCheckResult
-tar -czvf ${log_file}/system_log.tar.gz /var/log/ -P
-if [ $? -eq 0 ];then
-	echo "[+] Log packing successful" | $saveCheckResult
+
+# Check /var/log directory size, skip packaging if over 500MB
+log_size=$(du -sm /var/log | awk '{print $1}')
+max_size=500
+
+if [ "$log_size" -gt "$max_size" ]; then
+    echo "[!] Detected that the /var/log directory size is ${log_size}MB, exceeding the ${max_size}MB limit, skipping packaging operation" | $saveDangerResult | $saveCheckResult
 else
-	echo "[!] Log packing failed, please manually export the logs" |  $saveDangerResult | $saveCheckResult
+    tar -czvf ${log_file}/system_log.tar.gz /var/log/ -P
+    if [ $? -eq 0 ];then
+        echo "[+] Log packing successful" | $saveCheckResult
+    else
+        echo "[!] Log packing failed, please manually export the logs" |  $saveDangerResult | $saveCheckResult
+    fi
 fi
 printf "\n" | $saveCheckResult
 
