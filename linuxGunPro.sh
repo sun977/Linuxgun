@@ -5275,11 +5275,20 @@ attackAngleCheck(){
 checkOutlogPack(){ 
 	# 检查文件统一打包
 	echo -e "${YELLOW}正在打包系统原始日志[/var/log]:${NC}"  
-	tar -czvf ${log_file}/system_log.tar.gz /var/log/ -P >/dev/null 2>&1
-	if [ $? -eq 0 ];then
-		echo -e "${YELLOW}[INFO] 日志打包成功${NC}"  
+	
+	# 检查/var/log目录大小，如果超过500MB则不执行打包操作
+	log_size=$(du -sm /var/log | awk '{print $1}')
+	max_size=500
+	
+	if [ "$log_size" -gt "$max_size" ]; then
+		echo -e "${RED}[WARN] 检测到/var/log目录大小为${log_size}MB,超过${max_size}MB限制,跳过打包操作${NC}"  
 	else
-		echo -e "${RED}[WARN] 日志打包失败,请工人导出系统原始日志${NC}"  
+		tar -czvf ${log_file}/system_log.tar.gz /var/log/ -P >/dev/null 2>&1
+		if [ $? -eq 0 ];then
+			echo -e "${YELLOW}[INFO] 日志打包成功${NC}"  
+		else
+			echo -e "${RED}[WARN] 日志打包失败,请工人导出系统原始日志${NC}"  
+		fi
 	fi
 	printf "\n"  
 
