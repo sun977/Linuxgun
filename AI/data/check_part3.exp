@@ -1,10 +1,10 @@
 #!/usr/bin/expect -f
 
 set timeout 60
-set host "154.19.43.90"
+set host "xxx"
 set port "60223"
 set user "root"
-set password "Cv7088oN60ko3"
+set password "xxx"
 
 spawn ssh -p $port $user@$host
 
