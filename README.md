@@ -19,7 +19,12 @@ unzip Linuxgun.zip
 # 使用方法 Usage
 ### 目录结构
 0、**AI智能工具**
-   - **skills.md** 以 skills 的形式支持联动AI使用(内侧阶段 - 以 LinuxGunPro.sh 为模板)
+   - **linuxgun_skill_dev.md** 以 skill 的形式支持联动AI使用(内侧阶段 - 以 LinuxGunPro.sh 为模板)
+      - 技能使用方法：
+      	- TRAE兼容:把文件开头的注释 <!-- 开头 ---> 内容取消注释，然后在TRAE 规则 - 技能 中导入，看到生成文件隐藏文件:.trae/skills/linux-emergency-response 即表示导入成功。
+	  	- 提供需要排查的服务器登录方式：hostname,port,username,password
+	  	- 和 AI 交互根据提示选择流程进行排查即可。
+		- 过程中会生成一些中间文件，建议放在 /AI/data/ 下，方便后续分析或清理。
    - simple.md 精简版 skills （用于AI联动）
 
 1、**linuxGunPro.sh** 是专业增强版应急响应工具（最新版本 v6.0.6），在 linuxGun.sh 基础上增加了高级功能：

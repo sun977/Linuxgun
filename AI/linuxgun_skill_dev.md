@@ -1,3 +1,8 @@
+<!-- ---
+name: linux-emergency-response
+description: Linux 应急响应专用工具，用户只需提供 SSH 连接信息，AI 自动引导进行全面的入侵排查并分析结果。
+--- -->
+
 # SKILL.md
 id: linux-emergency-response
 name: Linux Gun AI Skills
