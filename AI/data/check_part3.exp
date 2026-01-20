@@ -1,0 +1,87 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set host "154.19.43.90"
+set port "60223"
+set user "root"
+set password "Cv7088oN60ko3"
+
+spawn ssh -p $port $user@$host
+
+expect {
+    "yes/no" { send "yes\r"; exp_continue }
+    "password:" { send "$password\r" }
+}
+
+expect "#"
+send "export TERM=xterm\r"
+expect "#"
+
+# 13. 后门排查 (增强)
+send "echo CHECK_PART3_START\r"
+expect "#"
+send "echo '>>> 13. Backdoor Detection (Enhanced)'\r"
+expect "#"
+send "ls -alt /etc/init.d/ | head -20\r"
+expect "#"
+send "cat /etc/rc.local 2>/dev/null\r"
+expect "#"
+send "echo \$LD_PRELOAD\r"
+expect "#"
+send "cat /etc/ld.so.preload 2>/dev/null\r"
+expect "#"
+send "alias\r"
+expect "#"
+# 检查 SSH key 变动 (最近修改)
+send "ls -l ~/.ssh/authorized_keys 2>/dev/null\r"
+expect "#"
+
+# 14. 内存排查 (rwx 段)
+send "echo '>>> 14. Memory Analysis'\r"
+expect "#"
+send "grep \"rwx\" /proc/*/maps 2>/dev/null | head -20\r"
+expect "#"
+
+# 15. 系统性能分析
+send "echo '>>> 15. System Performance'\r"
+expect "#"
+send "vmstat 1 5\r"
+expect "#"
+send "free -h\r"
+expect "#"
+# iostat 可能没有，尝试一下
+send "iostat -x 1 2 2>/dev/null || echo 'iostat not found'\r"
+expect "#"
+
+# 16. 基线检查
+send "echo '>>> 16. Security Baseline'\r"
+expect "#"
+send "echo '--- Password Policy ---'\r"
+expect "#"
+send "cat /etc/login.defs | grep PASS\r"
+expect "#"
+send "echo '--- Locked/Empty Password Accounts ---'\r"
+expect "#"
+send "awk -F: '(\$2==\"\" || \$2==\"!\" || \$2==\"*\"){print \$1}' /etc/shadow\r"
+expect "#"
+send "echo '--- File Permissions ---'\r"
+expect "#"
+send "ls -l /etc/passwd /etc/shadow\r"
+expect "#"
+send "echo '--- SSH Config ---'\r"
+expect "#"
+send "grep -E 'PermitRootLogin|PasswordAuthentication' /etc/ssh/sshd_config\r"
+expect "#"
+
+# 补充：SSH 会话检查 (针对之前的疑点)
+send "echo '>>> Extra: SSH Session Analysis'\r"
+expect "#"
+send "w\r"
+expect "#"
+send "netstat -antlp | grep sshd\r"
+expect "#"
+
+send "echo CHECK_PART3_END\r"
+expect "#"
+send "exit\r"
+expect eof

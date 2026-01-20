@@ -1,0 +1,51 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set host "154.19.43.90"
+set port "60223"
+set user "root"
+set password "Cv7088oN60ko3"
+set suspicious_pid "744806"
+set suspicious_ip "222.131.222.186"
+
+spawn ssh -p $port $user@$host
+
+expect {
+    "yes/no" { send "yes\r"; exp_continue }
+    "password:" { send "$password\r" }
+}
+
+expect "#"
+send "export TERM=xterm\r"
+expect "#"
+
+send "echo FINAL_INVESTIGATION_START\r"
+expect "#"
+
+# 1. 调查异常进程 PID 744806 (rwx 内存段)
+send "echo '>>> Investigating Suspicious PID $suspicious_pid'\r"
+expect "#"
+send "ps -fp $suspicious_pid\r"
+expect "#"
+send "ls -l /proc/$suspicious_pid/exe\r"
+expect "#"
+send "cat /proc/$suspicious_pid/cmdline | tr '\\0' ' '\r"
+expect "#"
+send "echo ''\r"
+expect "#"
+send "ls -l /proc/$suspicious_pid/fd\r"
+expect "#"
+
+# 2. 调查 SSH 隧道和可疑 IP
+send "echo '>>> Investigating SSH Tunnel / Suspicious IP $suspicious_ip'\r"
+expect "#"
+send "ss -antlp | grep sshd\r"
+expect "#"
+# 查看该 IP 关联的所有连接
+send "ss -antlp | grep \"$suspicious_ip\"\r"
+expect "#"
+
+send "echo FINAL_INVESTIGATION_END\r"
+expect "#"
+send "exit\r"
+expect eof

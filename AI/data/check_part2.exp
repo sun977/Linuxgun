@@ -1,0 +1,67 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set host "154.19.43.90"
+set port "60223"
+set user "root"
+set password "Cv7088oN60ko3"
+
+spawn ssh -p $port $user@$host
+
+expect {
+    "yes/no" { send "yes\r"; exp_continue }
+    "password:" { send "$password\r" }
+}
+
+expect "#"
+send "export TERM=xterm\r"
+expect "#"
+
+# 7. 隧道检测
+send "echo CHECK_PART2_START\r"
+expect "#"
+send "echo '>>> 7. Tunnel Detection'\r"
+expect "#"
+send "ss -antp | grep sshd\r"
+expect "#"
+send "ps -ef | egrep -i 'ssh .*(-L|-R|-D)\[\[:space:\]\]'\r"
+expect "#"
+send "ps -ef | egrep -i '(reGeorg|neo-regeorg|dnscat|iodine|icmptunnel|ptunnel|frp|nps|ngrok|chisel|gost|ncat|socat)'\r"
+expect "#"
+
+# 8. Webshell 排查 (尝试常见目录)
+send "echo '>>> 8. Webshell Detection'\r"
+expect "#"
+# 检查 Web 目录是否存在，如果存在则扫描
+send "for webdir in /var/www /home/wwwroot /usr/share/nginx/html; do if \[ -d \"\$webdir\" \]; then echo \"Scanning \$webdir...\"; find \"\$webdir\" -type f -mtime -3 2>/dev/null | head -20; grep -rE \"eval\\(|base64_decode\\(|gzinflate\\(|assert\\(|system\\(|passthru\\(|shell_exec\\(|popen\\(|proc_open\\(\" \"\$webdir\" 2>/dev/null | head -20; fi; done\r"
+expect "#"
+
+# 9. 病毒排查
+send "echo '>>> 9. Virus Detection'\r"
+expect "#"
+send "top -b -n 1 | awk '\$9 > 50 {print \$0}'\r"
+expect "#"
+send "find /tmp /var/tmp /dev/shm -type f -executable 2>/dev/null\r"
+expect "#"
+send "ps -ef | egrep -i '(xmrig|minerd|cpuminer|suppoie|kworkerds|kinsing|kdevtmpfsi)'\r"
+expect "#"
+
+# 11. 黑客工具排查
+send "echo '>>> 11. Hacker Tools Detection'\r"
+expect "#"
+send "ps -ef | egrep -i '(nmap|sqlmap|hydra|msfconsole|cobaltstrike|cs|teamserver|beacon|mimikatz|procdump)'\r"
+expect "#"
+# 查找常见黑客工具文件 (限制在 /tmp, /home, /root, /var 以避免全盘扫描太慢)
+send "find /tmp /home /root /var -name \"sqlmap.py\" -o -name \"nmap\" -o -name \"hydra\" -o -name \"mimikatz.exe\" 2>/dev/null | head -20\r"
+expect "#"
+
+# 13. 其他排查 (可疑脚本)
+send "echo '>>> 13. Suspicious Scripts'\r"
+expect "#"
+send "find /tmp /var/tmp /dev/shm -type f \\( -name '*.sh' -o -name '*.py' -o -name '*.pl' -o -name '*.elf' \\) 2>/dev/null\r"
+expect "#"
+
+send "echo CHECK_PART2_END\r"
+expect "#"
+send "exit\r"
+expect eof
